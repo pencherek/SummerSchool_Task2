@@ -9,7 +9,7 @@ class Sound:
         self.originSound: AudioSegment = AudioSegment.from_wav(path)
         self.monoSound: AudioSegment = self.originSound.set_channels(1)
         self.SAMPLE_RATE = self.originSound.frame_rate
-        self.DURATION = self.originSound.duration_seconds
+        self.DURATION = int(self.originSound.duration_seconds)
         self.nSampleNormalised = int(self.SAMPLE_RATE * self.DURATION)
         self.yf = rfft(np.array(self.monoSound.get_array_of_samples()))
         self.xf = rfftfreq(self.nSampleNormalised, 1/self.SAMPLE_RATE)
@@ -32,13 +32,20 @@ class Sound:
     def getYf(self, chunk: AudioSegment):
         return rfft(np.array(chunk.get_array_of_samples()))
 
-    def getPeakIndices(self, yf, width):
-        return find_peaks_cwt(yf, width)
+    def getPeak(self, xf, yf, width, intensity):
+        peaks = find_peaks_cwt(yf, width)
+        tbl = []
+        for i in peaks:
+            if yf[i] > intensity:
+                tbl.append([self.find_nearest(self.freqMIDI, xf[i])[0], yf[i]])
+        return tbl
 
     def find_nearest(self, array, value):
-        #array = np.asarray(array)
+        array = np.asarray(array)
         idx = (np.abs(array - value)).argmin()
         return array[idx]
+
+
 
 
 
